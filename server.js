@@ -134,17 +134,12 @@ const userSchema = new mongoose.Schema({
   }
 }, { versionKey: false });
 
-userSchema.pre("save", async function hashPassword(next) {
+userSchema.pre("save", async function hashPassword() {
   if (!this.isModified("password")) {
-    return next();
+    return;
   }
 
-  try {
-    this.password = await bcrypt.hash(this.password, 10);
-    return next();
-  } catch (error) {
-    return next(error);
-  }
+  this.password = await bcrypt.hash(this.password, 10);
 });
 
 const sessionSchema = new mongoose.Schema({
