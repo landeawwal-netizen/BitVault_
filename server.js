@@ -172,6 +172,17 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(APP_DIR));
 
+let storageReadyPromise = null;
+
+app.use(async (req, res, next) => {
+  try {
+    await ensureStorageReady();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
 function envStatus(name) {
   return process.env[name] ? "set" : "missing";
 }
@@ -1348,18 +1359,30 @@ process.on("unhandledRejection", (error) => {
   process.exit(1);
 });
 
+async function ensureStorageReady() {
+  if (!storageReadyPromise) {
+    storageReadyPromise = initializeStorage();
+  }
+
+  return storageReadyPromise;
+}
+
+async function initializeStorage() {
+  await connectMongoDb();
+
+  if (USE_MONGODB) {
+    await importJsonUsersIntoMongoDb();
+  } else {
+    recoverDataFiles();
+    readDb();
+  }
+
+  logStorageStatus("startup");
+}
+
 async function startServer() {
   try {
-    await connectMongoDb();
-
-    if (USE_MONGODB) {
-      await importJsonUsersIntoMongoDb();
-    } else {
-      recoverDataFiles();
-      readDb();
-    }
-
-    logStorageStatus("startup");
+    await ensureStorageReady();
     const server = app.listen(PORT, HOST, () => {
       console.log(`Server running on port ${PORT}`);
     });
@@ -1374,8 +1397,9 @@ async function startServer() {
   }
 }
 
-startServer();
+if (!process.env.VERCEL) {
+  startServer();
+}
 
-module.exports = {
-  app
-};
+module.exports = app;
+module.exports.app = app;
