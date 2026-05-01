@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BitVault Admin</title>
+  <style>
+    :root {
+      --bg: #e8edf5;
+      --surface: #ffffff;
+      --surface-soft: #f3f6fb;
+      --surface-strong: #dfe8fb;
+      --line: #d9e1ef;
+      --text: #15203a;
+      --muted: #6e7b97;
+      --brand: #1877f2;
+      --brand-dark: #125ec5;
+      --green: #1fbf75;
+      --red: #e05566;
+      --shadow: 0 12px 28px rgba(16, 35, 72, 0.08);
+      --shadow-lg: 0 20px 40px rgba(16, 35, 72, 0.12);
+      --radius-xl: 24px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --radius-sm: 12px;
+      --gradient-bg: linear-gradient(180deg, #f8fbff 0%, var(--bg) 100%);
+      --gradient-brand: linear-gradient(135deg, var(--brand), var(--brand-dark));
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      background: var(--gradient-bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; }
+    .hidden { display: none !important; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: grid;
+      grid-template-columns: 260px 1fr 320px;
+      gap: 14px;
+      align-items: center;
+      min-height: 72px;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(218, 226, 240, 0.9);
+      box-shadow: 0 2px 8px rgba(16, 35, 72, 0.04);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      background: var(--gradient-brand);
+      color: white;
+      font-weight: 900;
+      font-size: 24px;
+      box-shadow: 0 8px 20px rgba(24, 119, 242, 0.3);
+      transition: transform 0.2s ease;
+    }
+
+    .brand-mark:hover {
+      transform: scale(1.05);
+    }
+
+    .brand h1,
+    .brand p {
+      margin: 0;
+      line-height: 1.2;
+    }
+
+    .brand p {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .search {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 48px;
+      padding: 0 16px;
+      border-radius: 24px;
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      transition: all 0.2s ease;
+    }
+
+    .search:focus-within {
+      border-color: rgba(24, 119, 242, 0.4);
+      box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.08);
+    }
+
+    .search input {
+      border: 0;
+      outline: none;
+      background: transparent;
+      width: 100%;
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 16px;
+      min-height: 44px;
+      padding: 0 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+      font-size: 14px;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn.primary {
+      background: var(--gradient-brand);
+      color: white;
+      box-shadow: 0 4px 12px rgba(24, 119, 242, 0.2);
+    }
+
+    .btn.secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    .btn.soft {
+      background: #e8f0ff;
+      color: var(--brand);
+      border: 1px solid #d0defa;
+    }
+
+    .page {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr) 340px;
+      gap: 20px;
+      padding: 20px;
+      align-items: start;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .panel,
+    .card {
+      background: var(--surface);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: all 0.2s ease;
+    }
+
+    .panel:hover,
+    .card:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-2px);
+    }
+
+    .panel-inner,
+    .card-inner {
+      padding: 20px;
+    }
+
+    .left,
+    .center,
+    .right {
+      display: grid;
+      gap: 18px;
+    }
+
+    .menu {
+      display: grid;
+      gap: 8px;
+    }
+
+    .menu a {
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: var(--surface-soft);
+      color: var(--text);
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s ease;
+      font-size: 14px;
+    }
+
+    .menu a:hover {
+      background: #e8f0ff;
+      color: var(--brand);
+      transform: translateX(4px);
+    }
+
+    .menu a.active {
+      background: linear-gradient(135deg, #e8f0ff, #d0defa);
+      color: var(--brand);
+      box-shadow: 0 2px 8px rgba(24, 119, 242, 0.1);
+    }
+
+    .menu small,
+    .meta,
+    .subtle {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .metric-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .metric {
+      padding: 20px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, var(--surface) 0%, var(--surface-soft) 100%);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .metric::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--gradient-brand);
+    }
+
+    .metric:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .metric-value {
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .metric-note {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .section-head h2,
+    .section-head h3,
+    .section-head p {
+      margin: 0;
+    }
+
+    .section-head p {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .users {
+      display: grid;
+      gap: 16px;
+    }
+
+    .user-card {
+      padding: 20px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, var(--surface) 0%, var(--surface-soft) 100%);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .user-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .user-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      background: var(--gradient-brand);
+      color: white;
+      font-weight: 900;
+      font-size: 16px;
+      box-shadow: 0 4px 12px rgba(24, 119, 242, 0.2);
+    }
+
+    .user-name {
+      margin: 0;
+      font-weight: 900;
+      font-size: 16px;
+      color: var(--text);
+    }
+
+    .user-meta {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      word-break: break-all;
+    }
+
+    .balance-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .balance-pill {
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: var(--surface-strong);
+      border: 1px solid var(--line);
+      transition: all 0.2s ease;
+    }
+
+    .balance-pill:hover {
+      background: var(--surface);
+      transform: translateY(-1px);
+    }
+
+    .balance-pill span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 800;
+    }
+
+    .balance-pill strong {
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--text);
+    }
+
+    .fund-form {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1.2fr auto;
+      gap: 12px;
+      align-items: end;
+    }
+
+    input,
+    select {
+      min-height: 44px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--text);
+      padding: 0 14px;
+      width: 100%;
+      outline: none;
+      transition: all 0.2s ease;
+      font-size: 14px;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: rgba(24, 119, 242, 0.4);
+      box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.08);
+      background: var(--surface);
+    }
+
+    .notice {
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .history-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .history-item {
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+      transition: all 0.2s ease;
+    }
+
+    .history-item:hover {
+      background: var(--surface);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .history-item h4 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 900;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .history-item p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      margin-bottom: 4px;
+    }
+
+    .history-amount {
+      font-weight: 900;
+      color: var(--brand);
+    }
+
+    .feed-post {
+      padding: 20px;
+      border-radius: 24px;
+      background: var(--surface);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      box-shadow: var(--shadow);
+      transition: all 0.2s ease;
+    }
+
+    .feed-post:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-2px);
+    }
+
+    .feed-post h3,
+    .feed-post h4 {
+      margin: 0;
+      color: var(--text);
+    }
+
+    .feed-post p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    @media (max-width: 1180px) {
+      .topbar,
+      .page {
+        grid-template-columns: 1fr;
+      }
+
+      .top-actions {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .page {
+        padding: 16px;
+      }
+
+      .metric-row,
+      .balance-grid,
+      .fund-form {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar {
+        padding: 12px;
+      }
+
+      .btn {
+        width: 100%;
+      }
+
+      .user-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .section-head {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">B</div>
+      <div>
+        <h1>BitVault Admin</h1>
+        <p>Direct backend control</p>
+      </div>
+    </div>
+
+    <label class="search" aria-label="Search users">
+      <span>⌕</span>
+      <input id="searchUsers" type="search" placeholder="Search users, emails, receipts" />
+    </label>
+
+    <div class="top-actions">
+      <a class="btn secondary" href="/">Open BitVault</a>
+      <button class="btn primary" id="refreshAll" type="button">Refresh</button>
+    </div>
+  </header>
+
+  <main class="page">
+    <aside class="left">
+      <section class="panel">
+        <div class="panel-inner">
+          <div class="section-head">
+            <div>
+              <h3>Navigation</h3>
+              <p>Admin tools</p>
+            </div>
+          </div>
+          <nav class="menu">
+            <a class="active" href="#overview">Overview <small>Live</small></a>
+            <a href="#users">Users <small>Manage</small></a>
+            <a href="#transactions">Transactions <small>Receipts</small></a>
+          </nav>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-inner">
+          <div class="section-head">
+            <div>
+              <h3>Status</h3>
+              <p>Connected to backend</p>
+            </div>
+          </div>
+          <div class="notice" id="adminMessage">Admin page connected directly to the backend.</div>
+        </div>
+      </section>
+    </aside>
+
+    <section class="center">
+      <section class="feed-post" id="overview">
+        <div class="section-head">
+          <div>
+            <h2>Overview</h2>
+            <p>Current user and wallet totals</p>
+          </div>
+          <button class="btn soft" type="button" id="quickRefresh">Quick refresh</button>
+        </div>
+
+        <div class="metric-row">
+          <article class="metric">
+            <div class="metric-label">Total users</div>
+            <div class="metric-value" id="totalUsersValue">0</div>
+            <div class="metric-note">Registered accounts</div>
+          </article>
+          <article class="metric">
+            <div class="metric-label">Main Wallet</div>
+            <div class="metric-value" id="mainWalletTotalValue">$0.00</div>
+            <div class="metric-note">Sum of all Main Wallet balances</div>
+          </article>
+          <article class="metric">
+            <div class="metric-label">Wallet</div>
+            <div class="metric-value" id="walletTotalValue">$0.00</div>
+            <div class="metric-note">Sum of all Wallet balances</div>
+          </article>
+        </div>
+      </section>
+
+      <section class="feed-post" id="users">
+        <div class="section-head">
+          <div>
+            <h2>Users</h2>
+            <p>Add or deduct money from Main Wallet or Wallet</p>
+          </div>
+        </div>
+        <div class="users" id="adminUsersRows"></div>
+      </section>
+    </section>
+
+    <aside class="right">
+      <section class="panel">
+        <div class="panel-inner">
+          <div class="section-head">
+            <div>
+              <h3>Transactions</h3>
+              <p id="transactions" >Receipts and history</p>
+            </div>
+          </div>
+          <div class="history-list" id="adminTransactions"></div>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <script>
+    const totalUsersValue = document.getElementById('totalUsersValue');
+    const mainWalletTotalValue = document.getElementById('mainWalletTotalValue');
+    const walletTotalValue = document.getElementById('walletTotalValue');
+    const adminUsersRows = document.getElementById('adminUsersRows');
+    const adminTransactions = document.getElementById('adminTransactions');
+    const adminMessage = document.getElementById('adminMessage');
+    const refreshAll = document.getElementById('refreshAll');
+    const quickRefresh = document.getElementById('quickRefresh');
+    const searchUsers = document.getElementById('searchUsers');
+
+    let usersCache = [];
+
+    async function api(path, options = {}) {
+      return fetch(path, {
+        headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+        ...options
+      });
+    }
+
+    function money(value) {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD'
+      }).format(Number(value || 0));
+    }
+
+    function userInitials(user) {
+      return `${(user.firstName || 'U')[0]}${(user.lastName || 'A')[0]}`.toUpperCase();
+    }
+
+    function renderOverview(totals) {
+      totalUsersValue.textContent = totals.totalUsers || 0;
+      mainWalletTotalValue.textContent = money(totals.mainWallet || 0);
+      walletTotalValue.textContent = money(totals.wallet || 0);
+    }
+
+    function renderUsers(users) {
+      usersCache = users;
+      const filtered = applySearch(users);
+      adminUsersRows.innerHTML = filtered.length ? filtered.map((user, index) => `
+        <article class="user-card">
+          <div class="user-top">
+            <div style="display:flex; gap:12px; align-items:flex-start;">
+              <div class="avatar">${userInitials(user)}</div>
+              <div>
+                <p class="user-name">${user.firstName} ${user.lastName}</p>
+                <p class="user-meta">${user.email}</p>
+                <p class="user-meta">User ID: ${user.id}</p>
+              </div>
+            </div>
+            <div class="meta">#${index + 1}</div>
+          </div>
+
+          <div class="balance-grid">
+            <div class="balance-pill">
+              <span>Main Wallet</span>
+              <strong>${money(user.cashWallets?.mainWallet || 0)}</strong>
+            </div>
+            <div class="balance-pill">
+              <span>Wallet</span>
+              <strong>${money(user.cashWallets?.wallet || 0)}</strong>
+            </div>
+          </div>
+
+          <form class="fund-form" data-user-id="${user.id}">
+            <select name="wallet" aria-label="Wallet">
+              <option value="mainWallet">Main Wallet</option>
+              <option value="wallet">Wallet</option>
+            </select>
+            <select name="action" aria-label="Action">
+              <option value="add">Add</option>
+              <option value="deduct">Deduct</option>
+            </select>
+            <input name="amount" type="number" min="0.01" step="0.01" placeholder="Amount" required />
+            <button class="btn primary" type="submit">Apply</button>
+          </form>
+        </article>
+      `).join('') : '<div class="notice">No matching users found.</div>';
+    }
+
+    function renderTransactions(transactions) {
+      adminTransactions.innerHTML = transactions.length ? transactions.map((item) => `
+        <article class="history-item">
+          <h4>${item.type.replaceAll('_', ' ')}</h4>
+          <p>Receipt: ${item.receiptId || 'N/A'}</p>
+          <p>Amount: <span class="history-amount">${money(item.amount || 0)}</span></p>
+          <p>From: ${item.fromLabel || 'System'} | To: ${item.toLabel || 'System'}</p>
+          <p>${new Date(item.createdAt).toLocaleString()}</p>
+          <p>${item.note || ''}</p>
+        </article>
+      `).join('') : '<div class="history-item"><h4>No transactions yet</h4><p>Receipts will appear here.</p></div>';
+    }
+
+    function applySearch(users) {
+      const term = searchUsers.value.trim().toLowerCase();
+      if (!term) return users;
+      return users.filter((user) => [
+        user.firstName,
+        user.lastName,
+        user.email,
+        String(user.id)
+      ].some((value) => String(value || '').toLowerCase().includes(term)));
+    }
+
+    async function loadOverview() {
+      const response = await api('/api/admin/overview');
+      const data = await response.json();
+      renderOverview(data.totals || {});
+    }
+
+    async function loadUsers() {
+      const response = await api('/api/admin/users');
+      const data = await response.json();
+      renderUsers(data.users || []);
+    }
+
+    async function loadTransactions() {
+      const response = await api('/api/admin/transactions');
+      const data = await response.json();
+      renderTransactions(data.transactions || []);
+    }
+
+    async function reloadAll(message = 'Admin data refreshed.') {
+      await loadOverview();
+      await loadUsers();
+      await loadTransactions();
+      adminMessage.textContent = message;
+    }
+
+    adminUsersRows.addEventListener('submit', async (event) => {
+      const form = event.target.closest('form[data-user-id]');
+      if (!form) return;
+      event.preventDefault();
+      const formData = new FormData(form);
+      const response = await api(`/api/admin/users/${form.dataset.userId}/fund`, {
+        method: 'POST',
+        body: JSON.stringify({
+          wallet: formData.get('wallet'),
+          action: formData.get('action'),
+          amount: Number(formData.get('amount'))
+        })
+      });
+      const data = await response.json();
+      adminMessage.textContent = data.receiptId ? `${data.message} Receipt: ${data.receiptId}` : data.message;
+      if (!response.ok) return;
+      form.reset();
+      await reloadAll('Admin data refreshed after update.');
+    });
+
+    refreshAll.addEventListener('click', () => reloadAll());
+    quickRefresh.addEventListener('click', () => reloadAll());
+    searchUsers.addEventListener('input', () => renderUsers(usersCache));
+
+    reloadAll('Admin page connected directly to the backend.');
+  </script>
+</body>
+</html>

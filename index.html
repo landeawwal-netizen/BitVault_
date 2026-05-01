@@ -1,0 +1,2723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BitVault</title>
+  <style>
+    :root {
+      --bg: #e8edf5;
+      --surface: #ffffff;
+      --surface-soft: #f3f6fb;
+      --surface-strong: #dfe8fb;
+      --line: #d9e1ef;
+      --text: #15203a;
+      --muted: #6e7b97;
+      --brand: #1877f2;
+      --brand-dark: #125ec5;
+      --green: #1fbf75;
+      --red: #e05566;
+      --shadow: 0 12px 28px rgba(16, 35, 72, 0.08);
+      --radius-xl: 24px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --radius-sm: 12px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(180deg, #f8fbff 0%, var(--bg) 100%);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button, input, select { font: inherit; }
+    .hidden { display: none !important; }
+
+    .gate {
+      min-height: 100vh;
+      display: grid;
+      align-content: start;
+      justify-items: center;
+      padding: 18px 16px 28px;
+    }
+
+    .auth-shell {
+      width: min(100%, 460px);
+      display: grid;
+      gap: 18px;
+    }
+
+    .auth-head {
+      display: grid;
+      gap: 10px;
+      padding: 10px 4px 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 50px;
+      height: 50px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      background: rgba(255,255,255,0.18);
+      font-weight: 900;
+      font-size: 26px;
+      backdrop-filter: blur(8px);
+    }
+
+    .brand h1, .brand p { margin: 0; }
+    .brand p { color: var(--muted); font-size: 13px; }
+
+    .auth-head h2 {
+      margin: 0;
+      font-size: clamp(32px, 8vw, 40px);
+      line-height: 1.02;
+      letter-spacing: -0.05em;
+    }
+
+    .auth-head p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 15px;
+    }
+
+    .auth-form {
+      padding: 0;
+      background: transparent;
+    }
+
+    .auth-form-box {
+      display: grid;
+      gap: 14px;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 6px;
+      border-radius: 16px;
+      background: #eef3fb;
+      margin-bottom: 22px;
+    }
+
+    .tab {
+      border: 0;
+      min-height: 44px;
+      border-radius: 12px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .tab.active {
+      background: white;
+      color: var(--text);
+      box-shadow: 0 8px 18px rgba(32, 53, 97, 0.08);
+    }
+
+    .auth-grid, .field-stack { display: grid; gap: 14px; }
+    .auth-grid { grid-template-columns: 1fr; }
+
+    .field label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .field input, .field select {
+      width: 100%;
+      min-height: 48px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--text);
+      padding: 0 14px;
+      outline: none;
+    }
+
+    .field input:focus, .field select:focus {
+      border-color: rgba(24, 119, 242, 0.55);
+      box-shadow: 0 0 0 4px rgba(24, 119, 242, 0.08);
+    }
+
+    .message-soft {
+      min-height: 20px;
+      color: var(--red);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .login-note {
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: #f6f8fc;
+      border: 1px solid #e6ebf5;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 14px;
+      min-height: 46px;
+      padding: 0 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      cursor: pointer;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    #copyMainAddress,
+    #copyFund {
+      min-height: 36px;
+      padding: 0 12px;
+      border-radius: 12px;
+      font-size: 12px;
+    }
+
+    .btn.primary {
+      color: white;
+      background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+    }
+
+    .btn.secondary {
+      color: var(--text);
+      background: white;
+      border: 1px solid var(--line);
+    }
+
+    .btn.danger {
+      color: #b74051;
+      background: #fff4f6;
+      border: 1px solid #ffd8de;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+      display: grid;
+      background:
+        radial-gradient(circle at top, rgba(24, 119, 242, 0.16), transparent 28%),
+        linear-gradient(180deg, #07111f 0%, #0c1730 36%, #eaf0f8 36%, #eaf0f8 100%);
+    }
+
+    .topnav {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      align-items: center;
+      padding: 14px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(248, 251, 255, 0.86);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(214, 222, 235, 0.7);
+    }
+
+    .topnav-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .topnav-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .nav-tab.active {
+      background: #e8f0ff;
+      color: var(--brand);
+      border-color: #d0defa;
+    }
+
+    .page {
+      width: min(100%, 460px);
+      margin: 0 auto;
+      padding: 16px 16px 28px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .sidebar, .feed, .right-rail {
+      display: grid;
+      gap: 16px;
+    }
+
+    .sidebar,
+    .right-rail {
+      display: none;
+    }
+
+    .feed {
+      gap: 14px;
+    }
+
+    .panel {
+      background: rgba(255,255,255,0.92);
+      border: 1px solid rgba(255,255,255,0.9);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-card {
+      background: rgba(255,255,255,0.96);
+      border: 1px solid rgba(255,255,255,0.7);
+      border-radius: 28px;
+      box-shadow: 0 16px 40px rgba(10, 20, 41, 0.09);
+      padding: 18px;
+      backdrop-filter: blur(14px);
+    }
+
+    .sidebar-card {
+      padding: 16px;
+    }
+
+    .sidebar-nav {
+      display: grid;
+      gap: 10px;
+    }
+
+    .nav-link {
+      padding: 14px 16px;
+      border-radius: 16px;
+      color: var(--text);
+      text-decoration: none;
+      background: #f6f8fc;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+    }
+
+    .nav-link.active {
+      background: #e8f0ff;
+      color: var(--brand);
+    }
+
+    .sidebar-list, .history-list, .summary-list { display: grid; gap: 12px; }
+
+    .mini-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: #f6f8fc;
+      border: 1px solid #e6ebf5;
+    }
+
+    .mini-item strong, .mini-item span, .feed-post p, .history-item p { color: var(--muted); font-size: 13px; }
+
+    .feed-stack { display: grid; gap: 18px; }
+
+    .hero-card {
+      padding: 20px;
+      background:
+        radial-gradient(circle at top right, rgba(53, 208, 127, 0.16), transparent 20%),
+        linear-gradient(180deg, #10203d 0%, #0c162b 100%);
+      border-radius: 30px;
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 22px 50px rgba(6, 11, 22, 0.28);
+      color: white;
+    }
+
+    .hero-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .hero-balance {
+      margin-top: 8px;
+      font-size: clamp(38px, 5vw, 60px);
+      font-weight: 900;
+      letter-spacing: -0.05em;
+      color: white;
+    }
+
+    .hero-sub {
+      color: rgba(255,255,255,0.68);
+      margin-top: 6px;
+      line-height: 1.6;
+    }
+
+    .screen-hero {
+      padding: 18px;
+      border-radius: 26px;
+      background:
+        radial-gradient(circle at top right, rgba(53, 208, 127, 0.14), transparent 24%),
+        linear-gradient(180deg, #111c35 0%, #0b1326 100%);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 20px 44px rgba(6, 11, 22, 0.22);
+      color: white;
+      display: grid;
+      gap: 8px;
+    }
+
+    .screen-kicker {
+      color: rgba(255,255,255,0.62);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .screen-title {
+      margin: 0;
+      font-size: clamp(28px, 6vw, 40px);
+      line-height: 1.02;
+      letter-spacing: -0.05em;
+      font-weight: 900;
+    }
+
+    .screen-subtitle {
+      margin: 0;
+      color: rgba(255,255,255,0.68);
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .route-panel {
+      display: none;
+    }
+
+    body[data-view="home"] .route-home,
+    body[data-view="markets"] .route-markets,
+    body[data-view="send"] .route-send,
+    body[data-view="withdraw"] .route-withdraw,
+    body[data-view="fund"] .route-fund,
+    body[data-view="sell"] .route-sell {
+      display: grid;
+    }
+
+    body[data-view="home"] .route-home.route-panel,
+    body[data-view="markets"] .route-markets.route-panel,
+    body[data-view="send"] .route-send.route-panel,
+    body[data-view="withdraw"] .route-withdraw.route-panel,
+    body[data-view="fund"] .route-fund.route-panel,
+    body[data-view="sell"] .route-sell.route-panel {
+      display: grid;
+    }
+
+    body[data-view="fund"] .right-rail {
+      display: grid;
+    }
+
+    .market-list {
+      display: grid;
+      gap: 12px;
+      background: linear-gradient(180deg, #040404 0%, #071021 100%);
+      color: white;
+      border-radius: 24px;
+      padding: 16px;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.16);
+      overflow: hidden;
+    }
+
+    .market-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 16px;
+      align-items: center;
+      padding: 14px 0;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .market-row:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .market-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .market-name {
+      margin: 0;
+      font-weight: 900;
+      font-size: 15px;
+      color: white;
+    }
+
+    .market-meta {
+      margin: 4px 0 0;
+      color: rgba(255,255,255,0.5);
+      font-size: 13px;
+    }
+
+    .market-price {
+      text-align: right;
+      font-weight: 900;
+      color: white;
+    }
+
+    .market-price span {
+      display: block;
+      margin-top: 4px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .market-chart {
+      width: 130px;
+      height: 44px;
+      justify-self: center;
+    }
+
+    .trend-up { color: #35d07f; }
+    .trend-down { color: #ff5b6d; }
+
+    .action-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .action-pill {
+      border: 0;
+      background: transparent;
+      color: white;
+      display: grid;
+      justify-items: center;
+      gap: 8px;
+      padding: 4px 0;
+      cursor: pointer;
+    }
+
+    .action-pill span.icon {
+      width: 58px;
+      height: 58px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: white;
+      font-size: 22px;
+      font-weight: 900;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+    }
+
+    .action-pill[data-action="fund"] span.icon {
+      background: linear-gradient(135deg, #f2b54f, #d98c18);
+      color: #1a1204;
+    }
+
+    .action-pill[data-action="wallet"] span.icon {
+      background: linear-gradient(135deg, #7f8ba8, #56657f);
+      color: white;
+    }
+
+    .action-pill[data-action="withdraw"] span.icon {
+      background: linear-gradient(135deg, #88a2f5, #5977e6);
+      color: white;
+    }
+
+    .action-pill[data-action="send"] span.icon {
+      background: linear-gradient(135deg, #2f6df3, #1b4fc8);
+      color: white;
+    }
+
+    .action-pill span.label {
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .market-image-card {
+      display: grid;
+      gap: 12px;
+      margin-top: 18px;
+      padding: 16px;
+      border-radius: 22px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      border: 1px solid #e3e9f4;
+      box-shadow: var(--shadow);
+    }
+
+    .market-image-title {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 900;
+      color: var(--brand-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .live-price-image {
+      width: 100%;
+      border-radius: 18px;
+      min-height: 180px;
+      object-fit: cover;
+      background: #0a0f19;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .pull-refresh {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-16px);
+      z-index: 30;
+      width: min(92%, 340px);
+      padding: 12px 14px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.97);
+      border: 1px solid #d9e1ef;
+      box-shadow: 0 18px 40px rgba(16, 35, 72, 0.08);
+      color: var(--text);
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .pull-refresh.visible {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    .balance-card {
+      padding: 14px 0 8px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .balance-title {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .balance-toggle {
+      border: 0;
+      background: rgba(255,255,255,0.88);
+      color: #111;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+    }
+
+    .balance-toggle-mark {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      line-height: 1;
+      font-size: 18px;
+      color: #111;
+    }
+
+    .balance-toggle-slash {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      color: #111;
+      opacity: 0;
+      transform: rotate(-14deg);
+      transition: opacity 0.16s ease;
+      pointer-events: none;
+    }
+
+    .balance-toggle.is-hidden .balance-toggle-slash {
+      opacity: 1;
+    }
+
+    .balance-main {
+      font-size: clamp(24px, 5.5vw, 34px);
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.05em;
+    }
+
+    .balance-sub {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .mini-balances {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .mini-balance {
+      padding: 14px;
+      border-radius: 18px;
+      background: #111a2c;
+      border: 1px solid rgba(255,255,255,0.08);
+      color: white;
+      display: grid;
+      gap: 8px;
+    }
+
+    .mini-balance .label {
+      color: rgba(255,255,255,0.62);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .mini-balance .value {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .wallet-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .fund-wallet-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .fund-wallet-card {
+      border: 1px solid #e1e7f2;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #0f1b33 0%, #0b1427 100%);
+      color: white;
+      text-align: left;
+      padding: 14px;
+      display: grid;
+      gap: 8px;
+      cursor: pointer;
+      box-shadow: 0 14px 30px rgba(7, 12, 24, 0.18);
+      transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+    }
+
+    .fund-wallet-card:active,
+    .fund-wallet-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 34px rgba(7, 12, 24, 0.24);
+      border-color: rgba(24, 119, 242, 0.32);
+    }
+
+    .fund-wallet-card .label {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.58);
+      font-weight: 800;
+    }
+
+    .fund-wallet-card .balance {
+      font-size: 23px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .fund-wallet-card .address {
+      font-size: 11px;
+      color: rgba(255,255,255,0.66);
+      word-break: break-all;
+      line-height: 1.5;
+    }
+
+    .fund-wallet-card .cta {
+      margin-top: 2px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #ffd17c;
+    }
+
+    .fund-request {
+      display: none;
+    }
+
+    .fund-request.visible {
+      display: grid;
+    }
+
+    .fund-instruction {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .fund-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: grid;
+      place-items: end center;
+      background: rgba(3, 8, 18, 0.6);
+      padding: 20px 14px;
+      opacity: 1;
+      transition: opacity 0.16s ease;
+    }
+
+    .fund-modal.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .fund-modal-card {
+      width: min(100%, 480px);
+      border-radius: 26px;
+      background: rgba(255,255,255,0.98);
+      border: 1px solid rgba(255,255,255,0.9);
+      box-shadow: 0 26px 60px rgba(6, 11, 22, 0.32);
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+      position: relative;
+    }
+
+    .fund-modal-head h3 {
+      margin: 6px 0 0;
+      font-size: 24px;
+      line-height: 1.1;
+      letter-spacing: -0.04em;
+    }
+
+    .fund-modal-head p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 13px;
+    }
+
+    .fund-modal-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 36px;
+      height: 36px;
+      border: 0;
+      border-radius: 999px;
+      background: #eef3fb;
+      color: var(--text);
+      font-size: 20px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .wallet-card {
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #fff, #f7f9fd);
+      border: 1px solid #e7ecf5;
+      box-shadow: 0 10px 24px rgba(10, 20, 41, 0.07);
+      display: grid;
+      gap: 6px;
+    }
+
+    .wallet-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+    }
+
+    .wallet-amount {
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .wallet-code {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.5;
+      word-break: break-all;
+    }
+
+    .is-hidden-balance {
+      letter-spacing: 0.12em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .wallet-action-title {
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.4;
+      font-weight: 700;
+      margin: 0 0 4px;
+    }
+
+    .wallet-action-subtitle {
+      color: white;
+      font-size: 30px;
+      line-height: 1.1;
+      font-weight: 900;
+      letter-spacing: -0.05em;
+      margin: 0 0 12px;
+    }
+
+    .feed-post {
+      padding: 18px;
+      border-radius: 24px;
+      background: rgba(255,255,255,0.95);
+      border: 1px solid #e6ebf5;
+      box-shadow: var(--shadow);
+    }
+
+    .post-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+      margin-bottom: 14px;
+    }
+
+    .post-head h3, .feed-post h4, .right-rail h3, .sidebar-card h3 { margin: 0; }
+    .post-head p, .feed-post p, .right-rail p, .sidebar-card p { margin: 0; color: var(--muted); }
+
+    .receive-box, .receipt-box {
+      padding: 16px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #f8fbff, #eef3fb);
+      border: 1px solid #e6ebf5;
+      display: grid;
+      gap: 10px;
+    }
+
+    .receipt-box {
+      min-height: 104px;
+      align-content: start;
+    }
+
+    .qr {
+      width: 120px;
+      aspect-ratio: 1;
+      border-radius: 18px;
+      background:
+        linear-gradient(90deg, #091328 10px, transparent 10px) 0 0 / 20px 20px,
+        linear-gradient(#091328 10px, transparent 10px) 0 0 / 20px 20px,
+        #fff;
+      border: 10px solid #fff;
+      box-shadow: 0 12px 22px rgba(20, 34, 68, 0.08);
+      justify-self: center;
+    }
+
+    .wallet-code-line {
+      word-break: break-all;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      color: #2a3960;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .section-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .section-heading span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .method-picker {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .method-card {
+      border: 1px solid #e6ebf5;
+      border-radius: 18px;
+      background: white;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .method-card.active {
+      border-color: rgba(24, 119, 242, 0.45);
+      box-shadow: 0 0 0 4px rgba(24, 119, 242, 0.08);
+    }
+
+    .method-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      color: white;
+      font-weight: 900;
+      font-size: 18px;
+    }
+
+    .method-icon.cashapp { background: linear-gradient(135deg, #18c37e, #0da96b); }
+    .method-icon.paypal { background: linear-gradient(135deg, #2d8cff, #1260d1); }
+
+    .method-copy {
+      display: grid;
+      gap: 2px;
+    }
+
+    .method-copy strong {
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    .method-copy span {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .post-list { display: grid; gap: 14px; }
+
+    .tx-toolbar {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .tx-chip-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tx-chip {
+      border: 1px solid #dde5f1;
+      background: #fff;
+      color: var(--text);
+      border-radius: 999px;
+      min-height: 34px;
+      padding: 0 12px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .tx-chip.active {
+      background: #e8f0ff;
+      color: var(--brand);
+      border-color: #d0defa;
+    }
+
+    .history-item, .summary-item {
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: #f7faff;
+      border: 1px solid #e6ebf5;
+      display: grid;
+      gap: 4px;
+    }
+
+    .history-item.active {
+      border-color: rgba(24, 119, 242, 0.36);
+      box-shadow: 0 0 0 4px rgba(24, 119, 242, 0.06);
+      background: linear-gradient(180deg, #eef5ff, #e8f0ff);
+    }
+
+    .history-item {
+      cursor: pointer;
+    }
+
+    .tx-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .tx-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: #e9eff9;
+      color: var(--text);
+      font-weight: 900;
+      flex: 0 0 auto;
+    }
+
+    .tx-meta {
+      display: grid;
+      gap: 2px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .tx-meta strong,
+    .tx-meta span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .tx-amount {
+      margin-left: auto;
+      text-align: right;
+      font-weight: 900;
+    }
+
+    .tx-amount.positive { color: var(--green); }
+    .tx-amount.negative { color: var(--red); }
+    .tx-status.pending { color: #d48b1f; }
+    .tx-status.failed { color: var(--red); }
+    .tx-status.confirmed { color: var(--green); }
+
+    .tx-group {
+      display: grid;
+      gap: 10px;
+    }
+
+    .tx-group-head {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    .transaction-detail {
+      display: grid;
+      gap: 12px;
+      padding: 16px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, #fff, #f7f9fd);
+      border: 1px solid #e6ebf5;
+      box-shadow: 0 10px 24px rgba(10, 20, 41, 0.07);
+      margin-bottom: 14px;
+    }
+
+    .detail-status {
+      display: inline-flex;
+      align-self: start;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      background: #eef6ff;
+      color: var(--brand);
+    }
+
+    .detail-status.pending {
+      background: #fff6e6;
+      color: #d48b1f;
+    }
+
+    .detail-status.failed {
+      background: #fff1f3;
+      color: var(--red);
+    }
+
+    .detail-status.confirmed {
+      background: #eaf8ef;
+      color: var(--green);
+    }
+
+    .detail-amount {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .detail-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .detail-item {
+      display: grid;
+      gap: 4px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: #f7faff;
+      border: 1px solid #e6ebf5;
+    }
+
+    .detail-item span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .detail-item strong {
+      font-size: 14px;
+      word-break: break-all;
+    }
+
+    .detail-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .wallet-action-title {
+      color: rgba(255,255,255,0.62);
+      font-size: 15px;
+      font-weight: 700;
+      margin: 0 0 6px;
+    }
+
+    .wallet-action-subtitle {
+      color: white;
+      font-size: 34px;
+      font-weight: 900;
+      letter-spacing: -0.05em;
+      margin: 0 0 14px;
+    }
+
+    .wallet-card, .receive-box, .receipt-box, .history-item, .summary-item, .mini-balance, .method-card {
+      backdrop-filter: blur(12px);
+    }
+
+    .history-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .history-item h4, .summary-item h4 { margin: 0; font-size: 15px; }
+
+    .history-item p, .summary-item p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .history-amount {
+      font-weight: 900;
+      color: var(--text);
+    }
+
+    .summary-balance {
+      font-weight: 900;
+      color: var(--brand);
+    }
+
+    .inline-logout {
+      display: none;
+    }
+
+    @media (max-width: 1200px) {
+      .topnav { grid-template-columns: 1fr; }
+      .page { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 760px) {
+      .auth-grid, .form-grid, .wallet-grid { grid-template-columns: 1fr; }
+      .fund-wallet-grid { grid-template-columns: 1fr; }
+      .topnav-actions { justify-content: stretch; }
+      .topnav-actions .btn { width: 100%; }
+      .topnav-actions .btn.logout-btn { order: 4; }
+      .hero-head, .post-head, .history-top { display: grid; }
+      .topnav { padding: 12px; }
+      .page { padding: 12px; }
+      .btn { width: 100%; }
+      .action-row { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+      .action-pill span.icon { width: 52px; height: 52px; }
+      .method-picker { grid-template-columns: 1fr; }
+      .mini-balances { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div id="gate" class="gate">
+    <div class="auth-shell">
+      <div class="auth-head">
+        <div class="brand">
+          <div class="brand-mark">B</div>
+          <div>
+            <h1>BitVault</h1>
+            <p>Wallet on `/`</p>
+          </div>
+        </div>
+        <h2>Create your BitVault account</h2>
+        <p>Simple mobile-style signup. The fields are stacked vertically for Android and smaller screens.</p>
+      </div>
+
+      <section class="auth-form">
+        <div class="tabs">
+          <button class="tab active" id="createTab" type="button">Create</button>
+          <button class="tab" id="loginTab" type="button">Login</button>
+        </div>
+        <form id="authForm" class="field-stack auth-form-box">
+          <div class="auth-grid" id="nameFields">
+            <div class="field">
+              <label for="firstName">First name</label>
+              <input id="firstName" autocomplete="given-name" placeholder="First name" />
+            </div>
+            <div class="field">
+              <label for="lastName">Last name</label>
+              <input id="lastName" autocomplete="family-name" placeholder="Last name" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="email">Gmail / Email</label>
+            <input id="email" type="email" autocomplete="email" placeholder="you@gmail.com" required />
+          </div>
+          <div class="field">
+            <label for="password">Password</label>
+            <input id="password" type="password" minlength="8" maxlength="8" autocomplete="new-password" placeholder="8 characters" required />
+          </div>
+          <div class="field" id="confirmPasswordField">
+            <label for="confirmPassword">Confirm password</label>
+            <input id="confirmPassword" type="password" minlength="8" maxlength="8" autocomplete="new-password" placeholder="Repeat password" required />
+          </div>
+          <div class="login-note hidden" id="loginNote">Login only needs email and password.</div>
+          <div class="message-soft" id="message"></div>
+          <button class="btn primary" id="submitBtn" type="submit">Create wallet</button>
+        </form>
+      </section>
+    </div>
+  </div>
+
+  <div id="app" class="app-shell hidden">
+    <header class="topnav">
+      <div class="topnav-left">
+        <div class="brand">
+          <div class="brand-mark">B</div>
+          <div>
+            <h1 style="margin:0;font-size:18px;">BitVault</h1>
+            <p style="margin:0;color:var(--muted);font-size:13px;">Wallet feed</p>
+          </div>
+        </div>
+      </div>
+      <div class="topnav-actions"></div>
+    </header>
+
+    <div class="page">
+      <aside class="sidebar">
+        <section class="panel-card sidebar-card">
+          <div class="brand" style="margin-bottom: 16px;">
+            <div class="brand-mark">B</div>
+            <div>
+              <h3>BitVault</h3>
+              <p id="userLine">Secure account</p>
+            </div>
+          </div>
+          <div class="sidebar-nav">
+            <a class="nav-link active" href="/">Home <span>01</span></a>
+            <a class="nav-link" href="/markets">Markets <span>02</span></a>
+            <a class="nav-link" href="/send">Send <span>03</span></a>
+            <a class="nav-link" href="/withdraw">Withdraw <span>04</span></a>
+          </div>
+        </section>
+
+        <section class="panel-card sidebar-card">
+          <h3 style="margin:0 0 10px;">Quick Info</h3>
+          <div class="sidebar-list">
+            <div class="mini-item"><strong>Account</strong><span>Verified</span></div>
+            <div class="mini-item"><strong>Wallets</strong><span>Main Wallet + Wallet</span></div>
+            <div class="mini-item"><strong>Withdrawals</strong><span>Cash App / PayPal</span></div>
+          </div>
+        </section>
+
+      </aside>
+
+      <main class="feed feed-stack">
+        <section class="hero-card route-panel route-home">
+          <div class="hero-head">
+            <div>
+              <div class="balance-card">
+                <div class="balance-title">Balance <button class="balance-toggle" id="balanceToggle" type="button" aria-label="Hide balances"><span class="balance-toggle-mark">◉<span class="balance-toggle-slash">/</span></span></button></div>
+                <div class="balance-main" id="balanceUsdValue">$0.00</div>
+                <div class="balance-sub" id="balanceBtcValue">0.000000 BTC</div>
+              </div>
+            </div>
+            <button class="btn secondary" id="copyMainAddress" type="button">Copy wallet address</button>
+          </div>
+          <div class="action-row">
+            <a class="action-pill" data-action="send" href="/send"><span class="icon">↑</span><span class="label">Send</span></a>
+            <a class="action-pill" data-action="fund" href="/fund"><span class="icon">↓</span><span class="label">Fund</span></a>
+            <a class="action-pill" data-action="wallet" href="/fund"><span class="icon">▣</span><span class="label">Wallet</span></a>
+            <a class="action-pill" data-action="withdraw" href="/withdraw"><span class="icon">↘</span><span class="label">Withdraw</span></a>
+          </div>
+        </section>
+
+        <section class="wallet-grid route-panel route-home">
+          <article class="wallet-card">
+            <div class="wallet-label">Main Wallet</div>
+            <div class="wallet-amount" id="mainWalletValue">$0.00</div>
+            <div class="wallet-code" id="mainWalletCode">Wallet code</div>
+          </article>
+          <article class="wallet-card">
+            <div class="wallet-label">Wallet</div>
+            <div class="wallet-amount" id="walletValue">$0.00</div>
+            <div class="wallet-code" id="walletCode">Wallet code</div>
+          </article>
+        </section>
+
+        <section class="panel-card route-panel route-home route-markets" id="marketPanel">
+          <div class="section-heading">
+            <h3>Crypto</h3>
+            <span>Live prices</span>
+          </div>
+          <div class="market-list" id="marketList"></div>
+        </section>
+
+        <section class="panel-card route-panel route-send" id="sendPanel">
+          <div class="section-heading">
+            <h3>Send to any wallet</h3>
+            <span>Transfer</span>
+          </div>
+          <div class="mini-balances" style="margin-bottom:14px;">
+            <article class="mini-balance">
+              <div class="label">Main Balance</div>
+              <div class="value" id="sendMainBalance">$0.00</div>
+            </article>
+            <article class="mini-balance">
+              <div class="label">Wallet Balance</div>
+              <div class="value" id="sendWalletBalance">$0.00</div>
+            </article>
+          </div>
+          <form id="sendForm" class="form-grid">
+            <div class="field">
+              <label>Currency</label>
+              <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:18px;background:linear-gradient(180deg,#111a2c,#0b1324);border:1px solid rgba(255,255,255,0.08);color:white;font-weight:800;">
+                <span style="width:36px;height:36px;border-radius:12px;display:grid;place-items:center;background:#f2a33b;color:#111;font-size:18px;">₿</span>
+                <span>Bitcoin (BTC)</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="recipientEmail">Bitcoin address</label>
+              <input id="recipientEmail" type="text" placeholder="Enter bitcoin address" required />
+            </div>
+            <div class="field hidden" aria-hidden="true">
+              <label for="sendSourceWallet">From</label>
+              <select id="sendSourceWallet"></select>
+            </div>
+            <div class="field hidden" aria-hidden="true">
+              <label for="sendDestinationWallet">To wallet</label>
+              <select id="sendDestinationWallet"></select>
+            </div>
+            <div class="field">
+              <label for="sendAmount">Amount (BTC)</label>
+              <input id="sendAmount" type="number" min="0.000001" step="0.000001" placeholder="0.0000" required />
+            </div>
+            <div class="field">
+              <label for="sendNote">Note</label>
+              <input id="sendNote" type="text" placeholder="Add a note for this transaction" />
+            </div>
+            <button class="btn primary" type="submit">Send</button>
+          </form>
+          <div class="message-soft" id="sendMessage"></div>
+        </section>
+
+        <section class="panel-card route-panel route-withdraw" id="withdrawPanel">
+          <div class="section-heading">
+            <h3>Withdraw from Wallet</h3>
+            <span>Cash App or PayPal (min $1000 + fee)</span>
+          </div>
+          <div class="method-picker" id="withdrawMethodPicker">
+            <button class="method-card active" type="button" data-method="Cash App">
+              <span class="method-icon cashapp">$</span>
+              <span class="method-copy"><strong>Cash App</strong><span>Cash App tag</span></span>
+            </button>
+            <button class="method-card" type="button" data-method="PayPal">
+              <span class="method-icon paypal">P</span>
+              <span class="method-copy"><strong>PayPal</strong><span>PayPal email</span></span>
+            </button>
+          </div>
+          <form id="withdrawForm" class="field-stack auth-form-box" style="margin-top:14px;">
+            <div class="field">
+              <label for="withdrawDestination">Cash App tag or PayPal email</label>
+              <input id="withdrawDestination" type="text" placeholder="Enter destination" required />
+            </div>
+            <div class="field">
+              <label for="withdrawAmount">Amount (USD)</label>
+              <input id="withdrawAmount" type="number" min="1000" step="0.01" placeholder="1000.00" required />
+            </div>
+            <button class="btn primary" type="submit">Withdraw</button>
+          </form>
+          <div class="message-soft" id="withdrawMessage"></div>
+        </section>
+
+        <section class="panel-card route-panel route-sell" id="sellPanel">
+          <div class="section-heading">
+            <h3>Sell crypto</h3>
+            <span>Main Wallet only</span>
+          </div>
+          <form id="sellForm" class="form-grid">
+            <div class="field">
+              <label for="sellCoin">Coin</label>
+              <select id="sellCoin"></select>
+            </div>
+            <div class="field">
+              <label for="sellAmount">Amount</label>
+              <input id="sellAmount" type="number" min="0.000001" step="0.000001" placeholder="0.000000" required />
+            </div>
+            <div class="field">
+              <label for="sellWallet">Wallet</label>
+              <select id="sellWallet" disabled>
+                <option value="wallet">Wallet</option>
+              </select>
+            </div>
+            <button class="btn primary" type="submit">Sell</button>
+          </form>
+          <div class="message-soft" id="sellMessage"></div>
+        </section>
+
+        <section class="panel-card route-panel route-home" id="historyPanel">
+          <div class="section-heading">
+            <h3>Transaction history</h3>
+            <span>Receipts</span>
+          </div>
+          <div class="tx-toolbar">
+            <div class="tx-chip-row" id="transactionTypeFilters">
+              <button class="tx-chip active" type="button" data-filter="all">All</button>
+              <button class="tx-chip" type="button" data-filter="sent">Sent</button>
+              <button class="tx-chip" type="button" data-filter="received">Received</button>
+              <button class="tx-chip" type="button" data-filter="pending">Pending</button>
+              <button class="tx-chip" type="button" data-filter="failed">Failed</button>
+            </div>
+            <div class="tx-chip-row" id="assetFilters">
+              <button class="tx-chip active" type="button" data-asset="all">All assets</button>
+              <button class="tx-chip" type="button" data-asset="BTC">BTC</button>
+              <button class="tx-chip" type="button" data-asset="ETH">ETH</button>
+              <button class="tx-chip" type="button" data-asset="USDT">USDT</button>
+              <button class="tx-chip" type="button" data-asset="BNB">BNB</button>
+            </div>
+          </div>
+          <div class="transaction-detail hidden" id="transactionDetail">
+            <div class="section-heading" style="margin-bottom:10px;">
+              <h3 id="transactionDetailTitle">Transaction details</h3>
+              <button class="btn secondary" id="transactionBackBtn" type="button">Back</button>
+            </div>
+            <div class="detail-status" id="transactionDetailStatus">Confirmed</div>
+            <div class="detail-amount" id="transactionDetailAmount">$0.00</div>
+            <div class="detail-grid" id="transactionDetailMeta"></div>
+            <div class="detail-actions">
+              <a class="btn primary" id="transactionExplorerBtn" href="#" target="_blank" rel="noopener">View on Explorer</a>
+              <button class="btn secondary" id="transactionCopyTxid" type="button">Copy TXID</button>
+            </div>
+          </div>
+          <div id="transactionListWrap">
+            <div class="post-list" id="transactionList"></div>
+          </div>
+        </section>
+      </main>
+
+      <div id="pullToRefresh" class="pull-refresh">Swipe down to refresh your account</div>
+      <aside class="right-rail">
+        <section class="panel-card route-panel route-home route-fund" id="fundPanel">
+          <div class="section-heading">
+            <h3>Wallet</h3>
+            <span>Deposit bitcoin</span>
+          </div>
+          <select class="hidden" id="fundWalletSelect" aria-label="Select wallet"></select>
+          <div class="fund-wallet-grid" id="fundWalletCards">
+            <button class="fund-wallet-card" type="button" data-wallet="mainWallet">
+              <span class="label">Main Wallet</span>
+              <span class="balance" id="fundMainBalance">$0.00</span>
+              <span class="address" id="fundMainAddress">bc1...</span>
+              <span class="cta">Fund Main Wallet</span>
+            </button>
+            <button class="fund-wallet-card" type="button" data-wallet="wallet">
+              <span class="label">Wallet</span>
+              <span class="balance" id="fundWalletBalance">$0.00</span>
+              <span class="address" id="fundWalletAddress">bc1...</span>
+              <span class="cta">Fund Wallet</span>
+            </button>
+          </div>
+          <div class="receive-box fund-request hidden" id="fundRequestBox">
+            <div class="wallet-label" id="fundTitle">Main Wallet</div>
+            <p class="fund-instruction" id="fundInstruction">Select a wallet and enter an amount to generate a payment request.</p>
+            <div class="qr" aria-label="Wallet QR placeholder"></div>
+            <div class="wallet-code-line" id="fundAddress">Select a wallet and continue.</div>
+            <button class="btn secondary" id="copyFund" type="button">Copy wallet address</button>
+          </div>
+        </section>
+
+        <section class="panel-card route-panel route-home" id="summaryPanel">
+          <div class="section-heading">
+            <h3>Wallet summary</h3>
+            <span>2 wallets</span>
+          </div>
+          <div class="summary-list" id="walletSummary"></div>
+        </section>
+
+      </aside>
+    </div>
+  </div>
+
+  <div class="fund-modal hidden" id="fundModal" aria-hidden="true">
+    <div class="fund-modal-card" role="dialog" aria-modal="true" aria-labelledby="fundModalTitle">
+      <button class="fund-modal-close" id="fundModalClose" type="button" aria-label="Close fund modal">×</button>
+      <div class="fund-modal-head">
+        <div class="screen-kicker">Deposit bitcoin</div>
+        <h3 id="fundModalTitle">Main Wallet</h3>
+        <p id="fundModalSubtitle">Enter the BTC amount you want to fund.</p>
+      </div>
+      <div class="field">
+        <label for="fundAmount">Enter BTC amount</label>
+        <input id="fundAmount" type="number" min="0.000001" step="0.000001" placeholder="0.0000" />
+      </div>
+      <button class="btn primary" id="generateFund" type="button">Continue</button>
+    </div>
+  </div>
+
+  <script>
+    const defaultWalletLabels = { mainWallet: 'Main Wallet', wallet: 'Wallet' };
+    const gate = document.getElementById('gate');
+    const app = document.getElementById('app');
+    const createTab = document.getElementById('createTab');
+    const loginTab = document.getElementById('loginTab');
+    const authForm = document.getElementById('authForm');
+    const nameFields = document.getElementById('nameFields');
+    const firstName = document.getElementById('firstName');
+    const lastName = document.getElementById('lastName');
+    const email = document.getElementById('email');
+    const password = document.getElementById('password');
+    const confirmPassword = document.getElementById('confirmPassword');
+    const confirmPasswordField = document.getElementById('confirmPasswordField');
+    const loginNote = document.getElementById('loginNote');
+    const message = document.getElementById('message');
+    const submitBtn = document.getElementById('submitBtn');
+    const userLine = document.getElementById('userLine');
+    const balanceUsdValue = document.getElementById('balanceUsdValue');
+    const balanceBtcValue = document.getElementById('balanceBtcValue');
+    const sendMainBalance = document.getElementById('sendMainBalance');
+    const sendWalletBalance = document.getElementById('sendWalletBalance');
+    const mainWalletValue = document.getElementById('mainWalletValue');
+    const walletValue = document.getElementById('walletValue');
+    const mainWalletCode = document.getElementById('mainWalletCode');
+    const walletCode = document.getElementById('walletCode');
+    const balanceToggle = document.getElementById('balanceToggle');
+    const fundWalletSelect = document.getElementById('fundWalletSelect');
+    const fundAmount = document.getElementById('fundAmount');
+    const fundTitle = document.getElementById('fundTitle');
+    const fundAddress = document.getElementById('fundAddress');
+    const fundInstruction = document.getElementById('fundInstruction');
+    const fundRequestBox = document.getElementById('fundRequestBox');
+    const fundMainBalance = document.getElementById('fundMainBalance');
+    const fundWalletBalance = document.getElementById('fundWalletBalance');
+    const fundMainAddress = document.getElementById('fundMainAddress');
+    const fundWalletAddress = document.getElementById('fundWalletAddress');
+    const generateFund = document.getElementById('generateFund');
+    const copyFund = document.getElementById('copyFund');
+    const copyMainAddress = document.getElementById('copyMainAddress');
+    const fundModal = document.getElementById('fundModal');
+    const fundModalClose = document.getElementById('fundModalClose');
+    const fundModalTitle = document.getElementById('fundModalTitle');
+    const fundModalSubtitle = document.getElementById('fundModalSubtitle');
+    const fundWalletCards = document.getElementById('fundWalletCards');
+    const marketList = document.getElementById('marketList');
+    const walletSummary = document.getElementById('walletSummary');
+    const transactionTypeFilters = document.getElementById('transactionTypeFilters');
+    const assetFilters = document.getElementById('assetFilters');
+    const transactionList = document.getElementById('transactionList');
+    const transactionDetail = document.getElementById('transactionDetail');
+    const transactionDetailTitle = document.getElementById('transactionDetailTitle');
+    const transactionDetailStatus = document.getElementById('transactionDetailStatus');
+    const transactionDetailAmount = document.getElementById('transactionDetailAmount');
+    const transactionDetailMeta = document.getElementById('transactionDetailMeta');
+    const transactionBackBtn = document.getElementById('transactionBackBtn');
+    const transactionExplorerBtn = document.getElementById('transactionExplorerBtn');
+    const transactionCopyTxid = document.getElementById('transactionCopyTxid');
+    const transactionListWrap = document.getElementById('transactionListWrap');
+    const sendForm = document.getElementById('sendForm');
+    const recipientEmail = document.getElementById('recipientEmail');
+    const sendSourceWallet = document.getElementById('sendSourceWallet');
+    const sendDestinationWallet = document.getElementById('sendDestinationWallet');
+    const sendAmount = document.getElementById('sendAmount');
+    const sendNote = document.getElementById('sendNote');
+    const sendMessage = document.getElementById('sendMessage');
+    const withdrawForm = document.getElementById('withdrawForm');
+    const withdrawDestination = document.getElementById('withdrawDestination');
+    const withdrawAmount = document.getElementById('withdrawAmount');
+    const withdrawMessage = document.getElementById('withdrawMessage');
+    const withdrawMethodPicker = document.getElementById('withdrawMethodPicker');
+    const sellForm = document.getElementById('sellForm');
+    const sellCoin = document.getElementById('sellCoin');
+    const sellAmount = document.getElementById('sellAmount');
+    const sellMessage = document.getElementById('sellMessage');
+    const lockBtn = document.getElementById('lockBtn');
+    const sessionKey = 'bitvault_session';
+    const navTabs = document.querySelectorAll('.nav-tab, .nav-link, .bottom-tab');
+    let config = { walletLabels: defaultWalletLabels, withdrawalMethods: [] };
+    let currentProfile = null;
+    let authToken = localStorage.getItem(sessionKey) || '';
+    let mode = 'create';
+    let marketsTimer = null;
+    let marketPrices = {};
+    let touchStartY = 0;
+    let touchCurrentY = 0;
+    const pullToRefresh = document.getElementById('pullToRefresh');
+    let selectedWithdrawMethod = 'Cash App';
+    let fundGenerated = false;
+    let selectedFundWalletKey = 'mainWallet';
+    let balancesHidden = false;
+    const BTC_PER_USD = 0.00001357015;
+    let selectedTransactionId = '';
+    let currentTransactions = [];
+    let selectedTxTypeFilter = 'all';
+    let selectedAssetFilter = 'all';
+    let transactionDetailOpen = false;
+
+    function currentView() {
+      const path = window.location.pathname.replace(/\/+$/, '') || '/';
+      if (path === '/markets') return 'markets';
+      if (path === '/send') return 'send';
+      if (path === '/withdraw') return 'withdraw';
+      if (path === '/fund') return 'fund';
+      if (path === '/sell') return 'sell';
+      return 'home';
+    }
+
+    async function api(path, options = {}) {
+      return fetch(path, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+          ...(options.headers || {})
+        },
+        ...options
+      });
+    }
+
+    function normalizeEmail(value) {
+      return value.trim().toLowerCase();
+    }
+
+    function validPassword(value) {
+      return typeof value === 'string' && value.length === 8;
+    }
+
+    function money(value) {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD'
+      }).format(Number(value || 0));
+    }
+
+    function walletCodeFor(profile, walletKey) {
+      const entry = walletKey === 'wallet' ? profile?.wallet : profile?.mainWallet;
+      return entry?.address || '';
+    }
+
+    function maskWalletAddress(address) {
+      const value = String(address || '').trim();
+      if (!value) return '—';
+      if (value.length <= 10) return value;
+      return `${value.slice(0, 4)}...${value.slice(-4)}`;
+    }
+
+    function btcEquivalentFromUsd(usdValue) {
+      return Number(usdValue || 0) * BTC_PER_USD;
+    }
+
+    function formatBtc(usdValue) {
+      return `${btcEquivalentFromUsd(usdValue).toFixed(8)} BTC`;
+    }
+
+    function formatUsdBalance(value) {
+      return balancesHidden ? '****' : money(value);
+    }
+
+    function formatBtcBalance(value) {
+      return balancesHidden ? '****' : formatBtc(value);
+    }
+
+    function renderBalances(mainBalance, walletBalance) {
+      const totalUsd = Number(mainBalance || 0) + Number(walletBalance || 0);
+      balanceUsdValue.textContent = formatUsdBalance(totalUsd);
+      balanceBtcValue.textContent = formatBtcBalance(totalUsd);
+      sendMainBalance.textContent = formatUsdBalance(mainBalance);
+      sendWalletBalance.textContent = formatUsdBalance(walletBalance);
+      mainWalletValue.textContent = formatUsdBalance(mainBalance);
+      walletValue.textContent = formatUsdBalance(walletBalance);
+    }
+
+    function syncBalanceToggle() {
+      if (!balanceToggle) return;
+      balanceToggle.classList.toggle('is-hidden', balancesHidden);
+      balanceToggle.setAttribute('aria-label', balancesHidden ? 'Show balances' : 'Hide balances');
+    }
+
+    function resetTransactionFilters() {
+      selectedTxTypeFilter = 'all';
+      selectedAssetFilter = 'all';
+      selectedTransactionId = '';
+      transactionDetailOpen = false;
+      if (transactionTypeFilters) {
+        transactionTypeFilters.querySelectorAll('.tx-chip[data-filter]').forEach((item) => {
+          item.classList.toggle('active', item.dataset.filter === 'all');
+        });
+      }
+      if (assetFilters) {
+        assetFilters.querySelectorAll('.tx-chip[data-asset]').forEach((item) => {
+          item.classList.toggle('active', item.dataset.asset === 'all');
+        });
+      }
+    }
+
+    function formatLocalDate(value) {
+      return new Intl.DateTimeFormat(undefined, {
+        dateStyle: 'medium',
+        timeStyle: 'short'
+      }).format(new Date(value));
+    }
+
+    function transactionTimestamp(tx) {
+      return tx.timestamp || tx.createdAt || new Date().toISOString();
+    }
+
+    function shortAddress(value) {
+      const text = String(value || '').trim();
+      if (!text) return '—';
+      if (text.length <= 12) return text;
+      return `${text.slice(0, 6)}...${text.slice(-4)}`;
+    }
+
+    function transactionAssetSymbol(tx) {
+      return String(tx.assetSymbol || 'BTC').toUpperCase();
+    }
+
+    function transactionAssetName(tx) {
+      return tx.assetName || transactionAssetSymbol(tx);
+    }
+
+    function formatAssetAmount(value, symbol) {
+      const amount = Number(value || 0);
+      const upper = String(symbol || '').toUpperCase();
+      if (['BTC', 'ETH', 'BNB', 'USDT'].includes(upper)) {
+        return `${amount.toFixed(upper === 'USDT' ? 2 : 8)} ${upper}`;
+      }
+      return money(amount);
+    }
+
+    function formatSignedAmount(value, symbol, negative = false) {
+      const prefix = negative ? '-' : '+';
+      return `${prefix}${formatAssetAmount(value, symbol)}`;
+    }
+
+    function transactionStatus(tx) {
+      return String(tx.status || 'confirmed').toLowerCase();
+    }
+
+    function transactionMovement(tx) {
+      if (tx.type === 'sell') return 'received';
+      if (tx.type === 'withdrawal' || tx.type === 'admin_deduction') return 'sent';
+      if (tx.type === 'admin_credit') return 'received';
+      if (tx.type === 'send') {
+        if (currentProfile && tx.fromUserId === currentProfile.id) return 'sent';
+        return 'received';
+      }
+      return 'received';
+    }
+
+    function transactionDirection(tx) {
+      const status = transactionStatus(tx);
+      if (status === 'failed') return 'failed';
+      if (status === 'pending') return 'pending';
+      return transactionMovement(tx);
+    }
+
+    function transactionKindLabel(tx) {
+      const movement = transactionMovement(tx);
+      if (tx.type === 'sell') return 'Swap';
+      if (movement === 'sent') return 'Sent';
+      return 'Received';
+    }
+
+    function transactionGroupLabel(tx) {
+      const date = new Date(transactionTimestamp(tx));
+      const now = new Date();
+      const startOfToday = new Date(now);
+      startOfToday.setHours(0, 0, 0, 0);
+      const startOfTxDay = new Date(date);
+      startOfTxDay.setHours(0, 0, 0, 0);
+      const diffDays = Math.floor((startOfToday.getTime() - startOfTxDay.getTime()) / (24 * 60 * 60 * 1000));
+      if (diffDays <= 0) return 'Today';
+      if (diffDays === 1) return 'Yesterday';
+      if (diffDays <= 7) return 'This Week';
+      return 'Older';
+    }
+
+    function transactionMatchesFilters(tx) {
+      const direction = transactionDirection(tx);
+      const symbol = transactionAssetSymbol(tx);
+      const typeMatch = selectedTxTypeFilter === 'all' ||
+        (selectedTxTypeFilter === 'sent' && direction === 'sent') ||
+        (selectedTxTypeFilter === 'received' && direction === 'received') ||
+        (selectedTxTypeFilter === 'pending' && direction === 'pending') ||
+        (selectedTxTypeFilter === 'failed' && direction === 'failed');
+      const assetMatch = selectedAssetFilter === 'all' || symbol === selectedAssetFilter;
+      return typeMatch && assetMatch;
+    }
+
+    function explorerUrlFor(tx) {
+      const hash = tx.txHash || tx.receiptId || '';
+      const asset = transactionAssetSymbol(tx);
+      if (!hash) return '#';
+      if (asset === 'ETH' || String(tx.network || '').toLowerCase().includes('ethereum')) {
+        return `https://etherscan.io/tx/${hash}`;
+      }
+      if (asset === 'BNB') {
+        return `https://bscscan.com/tx/${hash}`;
+      }
+      return `https://www.blockchain.com/explorer/transactions/btc/${hash}`;
+    }
+
+    function sparklinePath(points) {
+      const values = Array.isArray(points) ? points.filter((value) => Number.isFinite(Number(value))) : [];
+      if (values.length < 2) return '';
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      const range = max - min || 1;
+      const width = 130;
+      const height = 44;
+      return values.map((value, index) => {
+        const x = (index / (values.length - 1)) * width;
+        const y = height - (((value - min) / range) * (height - 6) + 3);
+        return `${index === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)}`;
+      }).join(' ');
+    }
+
+    function setActiveNav() {
+      const view = currentView();
+      document.body.dataset.view = view;
+      navTabs.forEach((tab) => {
+        const href = tab.getAttribute('href');
+        const active = (view === 'home' && href === '/') ||
+          (view === 'markets' && href === '/markets') ||
+          (view === 'send' && href === '/send') ||
+          (view === 'withdraw' && href === '/withdraw') ||
+          (view === 'fund' && href === '/fund') ||
+          (view === 'sell' && href === '/sell');
+        tab.classList.toggle('active', active);
+      });
+    }
+
+    function navigateTo(path, replace = false) {
+      const nextPath = String(path || '/');
+      const currentPath = window.location.pathname.replace(/\/+$/, '') || '/';
+      if (nextPath === currentPath) {
+        document.body.dataset.view = currentView();
+        setActiveNav();
+        return;
+      }
+      const method = replace ? 'replaceState' : 'pushState';
+      window.history[method]({}, '', nextPath);
+      document.body.dataset.view = currentView();
+      setActiveNav();
+    }
+
+    function saveSession(token, user) {
+      authToken = token;
+      currentProfile = user;
+      localStorage.setItem(sessionKey, token);
+    }
+
+    function setMode(nextMode) {
+      mode = nextMode;
+      createTab.classList.toggle('active', mode === 'create');
+      loginTab.classList.toggle('active', mode === 'login');
+      nameFields.classList.toggle('hidden', mode === 'login');
+      confirmPasswordField.classList.toggle('hidden', mode === 'login');
+      loginNote.classList.toggle('hidden', mode !== 'login');
+      firstName.disabled = mode === 'login';
+      lastName.disabled = mode === 'login';
+      confirmPassword.disabled = mode === 'login';
+      confirmPassword.required = mode === 'create';
+      submitBtn.textContent = mode === 'create' ? 'Create wallet' : 'Login';
+      message.textContent = '';
+    }
+
+    function renderWalletSelectors() {
+      const options = Object.entries(config.walletLabels).map(([key, label]) => `<option value="${key}">${label}</option>`).join('');
+      fundWalletSelect.innerHTML = options;
+      sendSourceWallet.innerHTML = options;
+      sendDestinationWallet.innerHTML = options;
+    }
+
+    function renderWithdrawMethods() {
+      if (!withdrawMethodPicker) return;
+      withdrawMethodPicker.innerHTML = `
+        <button class="method-card active" type="button" data-method="Cash App">
+          <span class="method-icon cashapp">$</span>
+          <span class="method-copy"><strong>Cash App</strong><span>Cash App tag</span></span>
+        </button>
+        <button class="method-card" type="button" data-method="PayPal">
+          <span class="method-icon paypal">P</span>
+          <span class="method-copy"><strong>PayPal</strong><span>PayPal email</span></span>
+        </button>
+      `;
+      selectedWithdrawMethod = 'Cash App';
+    }
+
+    function renderSummary(profile) {
+      walletSummary.innerHTML = Object.entries(config.walletLabels).map(([key, label]) => `
+        <div class="summary-item">
+          <h4>${label}</h4>
+          <p>${maskWalletAddress(walletCodeFor(profile, key))}</p>
+          <div class="summary-balance">${money(profile.cashWallets?.[key] || 0)}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderMarkets(markets) {
+      if (!marketList) return;
+      marketPrices = Object.fromEntries(markets.map((coin) => [coin.id, Number(coin.current_price || 0)]));
+      marketList.innerHTML = markets.length ? markets.map((coin) => {
+        const change = Number(coin.price_change_percentage_24h || 0);
+        const isUp = change >= 0;
+        const label = coin.symbol ? coin.symbol.toUpperCase() : coin.id;
+        const sparkline = sparklinePath(coin.sparkline || []);
+        const chartColor = isUp ? '#35d07f' : '#ff5b6d';
+        return `
+          <article class="market-row">
+            <div class="market-head">
+              <img src="${coin.image || ''}" alt="${coin.name}" style="width:42px;height:42px;border-radius:14px;background:#fff;border:1px solid #e6ebf5;object-fit:cover;" />
+              <div>
+                <p class="market-name">${label}</p>
+                <p class="market-meta">${coin.name}</p>
+              </div>
+            </div>
+            <svg class="market-chart" viewBox="0 0 130 44" fill="none" aria-hidden="true">
+              <path d="${sparkline}" stroke="${chartColor}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+            <div class="market-price">
+              ${money(coin.current_price)}
+              <span class="${isUp ? 'trend-up' : 'trend-down'}">${isUp ? '▲' : '▼'} ${Math.abs(change).toFixed(2)}% 24h</span>
+            </div>
+          </article>
+        `;
+      }).join('') : '<div class="notice">No live market data yet.</div>';
+    }
+
+    function renderFundWalletCards(profile) {
+      if (!profile) return;
+      const mainAddress = walletCodeFor(profile, 'mainWallet');
+      const walletAddress = walletCodeFor(profile, 'wallet');
+      if (fundMainBalance) fundMainBalance.textContent = formatUsdBalance(profile.cashWallets?.mainWallet || 0);
+      if (fundWalletBalance) fundWalletBalance.textContent = formatUsdBalance(profile.cashWallets?.wallet || 0);
+      if (fundMainAddress) fundMainAddress.textContent = maskWalletAddress(mainAddress);
+      if (fundWalletAddress) fundWalletAddress.textContent = maskWalletAddress(walletAddress);
+    }
+
+    function renderTransactionDetail(tx) {
+      if (!tx || !transactionDetail) return;
+      const status = transactionStatus(tx);
+      const direction = transactionDirection(tx);
+      const movement = transactionMovement(tx);
+      const statusText = status === 'pending' ? 'Pending' : status === 'failed' ? 'Failed' : 'Confirmed';
+      const amountPrefix = movement === 'sent' ? '-' : '+';
+      const amountText = formatSignedAmount(tx.amount, transactionAssetSymbol(tx), movement === 'sent');
+      const explorerUrl = explorerUrlFor(tx);
+
+      transactionDetailTitle.textContent = `${transactionKindLabel(tx)} transaction`;
+      transactionDetailStatus.textContent = statusText;
+      transactionDetailStatus.className = `detail-status ${status}`;
+      transactionDetailAmount.textContent = `${amountPrefix}${formatAssetAmount(tx.amount, transactionAssetSymbol(tx))}`;
+      transactionDetailMeta.innerHTML = [
+        ['Coin/token', `${transactionAssetName(tx)} (${transactionAssetSymbol(tx)})`],
+        ['Amount', amountText],
+        ['Fiat value', money(tx.fiatValue || 0)],
+        ['Network fee', money(tx.fee || 0)],
+        ['Sender address', tx.senderAddress || '—'],
+        ['Receiver address', tx.receiverAddress || '—'],
+        ['TXID', tx.txHash || '—'],
+        ['Date and time', formatLocalDate(transactionTimestamp(tx))],
+        ['Blockchain network', tx.network || 'Bitcoin'],
+        ['Confirmations', String(tx.confirmations ?? 0)]
+      ].map(([label, value]) => `
+        <div class="detail-item">
+          <span>${label}</span>
+          <strong>${value}</strong>
+        </div>
+      `).join('');
+      transactionExplorerBtn.href = explorerUrl;
+      transactionExplorerBtn.classList.toggle('hidden', !tx.txHash);
+      transactionCopyTxid.onclick = async () => {
+        if (!tx.txHash) return;
+        try {
+          await navigator.clipboard.writeText(tx.txHash);
+          transactionCopyTxid.textContent = 'Copied';
+        } catch {
+          transactionCopyTxid.textContent = 'Copy failed';
+        }
+        setTimeout(() => {
+          transactionCopyTxid.textContent = 'Copy TXID';
+        }, 1200);
+      };
+      transactionDetail.classList.remove('hidden');
+    }
+
+    function renderTransactions(transactions) {
+      currentTransactions = transactions.slice().sort((a, b) => new Date(transactionTimestamp(b)).getTime() - new Date(transactionTimestamp(a)).getTime());
+      const filtered = currentTransactions.filter(transactionMatchesFilters);
+
+      if (!filtered.length) {
+        selectedTransactionId = '';
+        transactionDetailOpen = false;
+        transactionDetail.classList.add('hidden');
+        if (transactionListWrap) transactionListWrap.classList.remove('hidden');
+        if (transactionTypeFilters) transactionTypeFilters.classList.remove('hidden');
+        if (assetFilters) assetFilters.classList.remove('hidden');
+        transactionList.innerHTML = '<div class="history-item"><h4>No transactions yet</h4><p>Send or receive crypto and your activity will appear here.</p></div>';
+        return;
+      }
+
+      if (!selectedTransactionId || !filtered.some((item) => item.id === selectedTransactionId)) {
+        selectedTransactionId = filtered[0].id;
+      }
+
+      const selected = filtered.find((item) => item.id === selectedTransactionId) || filtered[0];
+      if (transactionDetailOpen && selected) {
+        transactionDetail.classList.remove('hidden');
+        if (transactionListWrap) transactionListWrap.classList.add('hidden');
+        if (transactionTypeFilters) transactionTypeFilters.classList.add('hidden');
+        if (assetFilters) assetFilters.classList.add('hidden');
+        renderTransactionDetail(selected);
+        return;
+      }
+
+      transactionDetail.classList.add('hidden');
+      if (transactionListWrap) transactionListWrap.classList.remove('hidden');
+      if (transactionTypeFilters) transactionTypeFilters.classList.remove('hidden');
+      if (assetFilters) assetFilters.classList.remove('hidden');
+
+      const groups = filtered.reduce((acc, tx) => {
+        const key = transactionGroupLabel(tx);
+        acc[key] = acc[key] || [];
+        acc[key].push(tx);
+        return acc;
+      }, {});
+
+      const orderedGroups = ['Today', 'Yesterday', 'This Week', 'Older'].filter((key) => Array.isArray(groups[key]) && groups[key].length);
+      transactionList.innerHTML = orderedGroups.map((groupName) => {
+        const items = groups[groupName];
+        return `
+          <div class="tx-group">
+            <div class="tx-group-head">${groupName}</div>
+            ${items.map((item) => {
+              const direction = transactionDirection(item);
+              const movement = transactionMovement(item);
+              const symbol = transactionAssetSymbol(item);
+              const title = transactionKindLabel(item);
+              const isActive = item.id === selectedTransactionId;
+              const counterpart = movement === 'sent'
+                ? (item.receiverAddress || item.toLabel || '—')
+                : (item.senderAddress || item.fromLabel || '—');
+              const signedAmount = formatSignedAmount(item.amount, symbol, movement === 'sent');
+              const status = transactionStatus(item);
+              const statusText = status.charAt(0).toUpperCase() + status.slice(1);
+              return `
+                <div class="history-item ${isActive ? 'active' : ''}" data-transaction-id="${item.id}" role="button" tabindex="0" aria-pressed="${isActive}">
+                  <div class="tx-line">
+                    <div class="tx-icon">${symbol}</div>
+                    <div class="tx-meta">
+                      <strong>${title}</strong>
+                      <span>${symbol} • ${shortAddress(counterpart)}</span>
+                    </div>
+                    <div class="tx-amount ${direction === 'sent' ? 'negative' : 'positive'}">
+                      ${signedAmount}
+                      <div style="font-size:12px;font-weight:700;color:var(--muted);">${money(item.fiatValue || 0)}</div>
+                    </div>
+                  </div>
+                  <div class="tx-line" style="margin-top:4px;">
+                    <div class="tx-status ${status}">${statusText}</div>
+                    <div style="color:var(--muted);font-size:12px;margin-left:auto;">${formatLocalDate(transactionTimestamp(item))}</div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function loadTransactions() {
+      if (!authToken) return;
+      const response = await api('/api/wallet/transactions');
+      const data = await response.json();
+      if (!response.ok) return;
+      const transactions = data.transactions || [];
+      renderTransactions(transactions);
+    }
+
+    async function loadMarkets() {
+      const response = await api('/api/markets');
+      const data = await response.json();
+      renderMarkets(data.markets || []);
+      marketPrices = Object.fromEntries((data.markets || []).map((coin) => [coin.id, Number(coin.current_price || 0)]));
+      if (currentProfile) {
+        const totalUsd = Number(currentProfile.cashWallets?.mainWallet || 0) + Number(currentProfile.cashWallets?.wallet || 0);
+        renderBalances(Number(currentProfile.cashWallets?.mainWallet || 0), Number(currentProfile.cashWallets?.wallet || 0));
+      }
+      if (sellCoin && !sellCoin.dataset.populated) {
+        sellCoin.innerHTML = (data.markets || [])
+          .filter((coin) => ['bitcoin', 'ethereum'].includes(coin.id))
+          .map((coin) => `<option value="${coin.id}">${coin.name}</option>`)
+          .join('');
+        sellCoin.dataset.populated = 'true';
+      }
+    }
+
+    function updateFund() {
+      if (!currentProfile) return;
+      const walletKey = fundWalletSelect.value || 'mainWallet';
+      fundTitle.textContent = config.walletLabels[walletKey];
+      const amountValue = Number(fundAmount?.value || 0);
+      const walletAddress = walletCodeFor(currentProfile, walletKey);
+      if (fundModalTitle) fundModalTitle.textContent = config.walletLabels[walletKey];
+      if (fundModalSubtitle) {
+        fundModalSubtitle.textContent = amountValue > 0
+          ? `Continue to view the ${amountValue.toFixed(8).replace(/0+$/, '').replace(/\.$/, '')} BTC payment details.`
+          : 'Enter the BTC amount you want to fund.';
+      }
+      if (!fundGenerated) {
+        fundAddress.textContent = 'Select a wallet and continue to generate a payment request.';
+        if (fundInstruction) {
+          fundInstruction.textContent = 'Choose a wallet card, enter the BTC amount, and continue to reveal the saved deposit address.';
+        }
+      } else {
+        fundAddress.textContent = walletAddress;
+        if (fundInstruction) {
+          fundInstruction.textContent = amountValue > 0
+            ? `Send exactly ${amountValue.toFixed(8).replace(/0+$/, '').replace(/\.$/, '')} BTC to this address.`
+            : 'Send BTC to this address from your external wallet.';
+        }
+      }
+      if (copyFund) {
+        copyFund.disabled = !fundGenerated;
+      }
+      renderFundWalletCards(currentProfile);
+    }
+
+    function showReceipt(text) {
+      if (!transactionDetail) return;
+      transactionDetail.textContent = text;
+    }
+
+    function showApp(profile) {
+      currentProfile = profile;
+      const mainBalance = Number(profile.cashWallets?.mainWallet || 0);
+      const walletBalance = Number(profile.cashWallets?.wallet || 0);
+      resetTransactionFilters();
+      userLine.textContent = `${profile.firstName} ${profile.lastName}`;
+      renderBalances(mainBalance, walletBalance);
+      mainWalletCode.textContent = walletCodeFor(profile, 'mainWallet');
+      walletCode.textContent = walletCodeFor(profile, 'wallet');
+      renderWalletSelectors();
+      renderWithdrawMethods();
+      renderSummary(profile);
+      fundWalletSelect.value = 'mainWallet';
+      selectedFundWalletKey = 'mainWallet';
+      if (fundAmount) fundAmount.value = '';
+      fundGenerated = false;
+      if (copyFund) copyFund.disabled = true;
+      if (fundRequestBox) {
+        fundRequestBox.classList.add('hidden');
+        fundRequestBox.classList.remove('visible');
+      }
+      if (fundModal) fundModal.classList.add('hidden');
+      sendSourceWallet.value = 'mainWallet';
+      sendDestinationWallet.value = 'mainWallet';
+      updateFund();
+      syncBalanceToggle();
+      gate.classList.add('hidden');
+      app.classList.remove('hidden');
+      loadTransactions();
+      loadMarkets();
+      if (!marketsTimer) {
+        marketsTimer = setInterval(loadMarkets, 60000);
+      }
+    }
+
+    async function refreshCurrentUser() {
+      const response = await api('/api/auth/me');
+      const data = await response.json();
+      if (!response.ok) return;
+      saveSession(authToken, data.user);
+      showApp(data.user);
+    }
+
+    function showPullRefreshMessage(text) {
+      if (!pullToRefresh) return;
+      pullToRefresh.textContent = text;
+      pullToRefresh.classList.add('visible');
+      setTimeout(() => pullToRefresh.classList.remove('visible'), 1400);
+    }
+
+    function openFundModal(walletKey) {
+      selectedFundWalletKey = walletKey || 'mainWallet';
+      if (fundWalletSelect) {
+        fundWalletSelect.value = selectedFundWalletKey;
+      }
+      fundGenerated = false;
+      if (fundAmount) fundAmount.value = '';
+      if (copyFund) copyFund.disabled = true;
+      if (fundRequestBox) {
+        fundRequestBox.classList.add('hidden');
+        fundRequestBox.classList.remove('visible');
+      }
+      if (fundModal) {
+        fundModal.classList.remove('hidden');
+        fundModal.setAttribute('aria-hidden', 'false');
+      }
+      updateFund();
+      setTimeout(() => fundAmount?.focus(), 0);
+    }
+
+    function closeFundModal() {
+      if (!fundModal) return;
+      fundModal.classList.add('hidden');
+      fundModal.setAttribute('aria-hidden', 'true');
+    }
+
+    window.addEventListener('touchstart', (event) => {
+      if (!authToken || app.classList.contains('hidden')) return;
+      if (window.scrollY > 2) return;
+      touchStartY = event.touches[0].clientY;
+      touchCurrentY = touchStartY;
+    });
+
+    window.addEventListener('touchmove', (event) => {
+      if (!touchStartY) return;
+      touchCurrentY = event.touches[0].clientY;
+      const delta = touchCurrentY - touchStartY;
+      if (delta > 25 && window.scrollY <= 2) {
+        showPullRefreshMessage(delta > 80 ? 'Release to refresh account' : 'Swipe down to refresh account');
+      }
+    });
+
+    window.addEventListener('touchend', async () => {
+      if (!touchStartY) return;
+      const delta = touchCurrentY - touchStartY;
+      if (delta > 80 && authToken && !app.classList.contains('hidden')) {
+        showPullRefreshMessage('Refreshing account...');
+        await refreshCurrentUser();
+        showPullRefreshMessage('Account refreshed');
+      }
+      touchStartY = 0;
+      touchCurrentY = 0;
+    });
+
+    async function copyText(text, button, defaultText) {
+      try {
+        await navigator.clipboard.writeText(text);
+        button.textContent = 'Copied';
+      } catch {
+        button.textContent = 'Copy failed';
+      }
+      setTimeout(() => {
+        button.textContent = defaultText;
+      }, 1200);
+    }
+
+    createTab.addEventListener('click', () => setMode('create'));
+    loginTab.addEventListener('click', () => setMode('login'));
+
+    authForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const accountEmail = normalizeEmail(email.value);
+      const accountPassword = password.value;
+
+      if (!validPassword(accountPassword)) {
+        message.textContent = 'Password must be exactly 8 characters.';
+        return;
+      }
+
+      if (mode === 'create') {
+        if (confirmPassword.value !== accountPassword) {
+          message.textContent = 'Confirm password must match password.';
+          return;
+        }
+
+        const payload = {
+          firstName: firstName.value.trim(),
+          lastName: lastName.value.trim(),
+          email: accountEmail,
+          password: accountPassword
+        };
+
+        if (!payload.firstName || !payload.lastName || !payload.email) {
+          message.textContent = 'Enter your name, email, and 8-character password.';
+          return;
+        }
+
+        const response = await api('/api/auth/signup', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        message.textContent = data.message;
+        if (!response.ok) return;
+        saveSession(data.token, data.user);
+        showReceipt('Account created. Main Wallet and Wallet both start at $0.00.');
+        showApp(data.user);
+        return;
+      }
+
+      const response = await api('/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({
+          email: accountEmail,
+          password: accountPassword
+        })
+      });
+      const data = await response.json();
+      message.textContent = data.message;
+      if (!response.ok) return;
+      saveSession(data.token, data.user);
+      showApp(data.user);
+    });
+
+    fundWalletSelect.addEventListener('change', () => {
+      fundGenerated = false;
+      selectedFundWalletKey = fundWalletSelect.value || 'mainWallet';
+      if (fundRequestBox) {
+        fundRequestBox.classList.add('hidden');
+        fundRequestBox.classList.remove('visible');
+      }
+      updateFund();
+    });
+    if (fundAmount) {
+      fundAmount.addEventListener('input', () => {
+        fundGenerated = false;
+        if (fundRequestBox) {
+          fundRequestBox.classList.add('hidden');
+          fundRequestBox.classList.remove('visible');
+        }
+        updateFund();
+      });
+    }
+    if (generateFund) {
+      generateFund.addEventListener('click', () => {
+        if (!currentProfile) return;
+        const amountValue = Number(fundAmount?.value || 0);
+        if (!Number.isFinite(amountValue) || amountValue <= 0) {
+          fundGenerated = false;
+          if (fundAddress) fundAddress.textContent = 'Enter a BTC amount before generating a payment request.';
+          return;
+        }
+        const walletKey = selectedFundWalletKey || fundWalletSelect.value || 'mainWallet';
+        fundGenerated = true;
+        if (fundAddress) fundAddress.textContent = walletCodeFor(currentProfile, walletKey);
+        if (fundRequestBox) {
+          fundRequestBox.classList.remove('hidden');
+          fundRequestBox.classList.add('visible');
+        }
+        if (copyFund) copyFund.disabled = false;
+        closeFundModal();
+        updateFund();
+      });
+    }
+    if (fundWalletCards) {
+      fundWalletCards.addEventListener('click', (event) => {
+        const button = event.target.closest('.fund-wallet-card[data-wallet]');
+        if (!button) return;
+        openFundModal(button.dataset.wallet || 'mainWallet');
+      });
+    }
+    if (fundModalClose) {
+      fundModalClose.addEventListener('click', closeFundModal);
+    }
+    if (fundModal) {
+      fundModal.addEventListener('click', (event) => {
+        if (event.target === fundModal) {
+          closeFundModal();
+        }
+      });
+    }
+    document.addEventListener('click', (event) => {
+      const link = event.target.closest('a[href]');
+      if (!link) return;
+      const href = link.getAttribute('href');
+      if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
+      if (link.target && link.target !== '_self') return;
+      const url = new URL(link.href, window.location.origin);
+      if (url.origin !== window.location.origin) return;
+      event.preventDefault();
+      navigateTo(url.pathname);
+    });
+    if (transactionTypeFilters) {
+      transactionTypeFilters.addEventListener('click', (event) => {
+        const button = event.target.closest('.tx-chip[data-filter]');
+        if (!button) return;
+        selectedTxTypeFilter = button.dataset.filter || 'all';
+        transactionDetailOpen = false;
+        transactionTypeFilters.querySelectorAll('.tx-chip').forEach((item) => {
+          item.classList.toggle('active', item === button);
+        });
+        renderTransactions(currentTransactions);
+      });
+    }
+    if (assetFilters) {
+      assetFilters.addEventListener('click', (event) => {
+        const button = event.target.closest('.tx-chip[data-asset]');
+        if (!button) return;
+        selectedAssetFilter = button.dataset.asset || 'all';
+        transactionDetailOpen = false;
+        assetFilters.querySelectorAll('.tx-chip').forEach((item) => {
+          item.classList.toggle('active', item === button);
+        });
+        renderTransactions(currentTransactions);
+      });
+    }
+    if (transactionList) {
+      const activateTransaction = (target) => {
+        const card = target.closest('.history-item[data-transaction-id]');
+        if (!card) return;
+        selectedTransactionId = card.dataset.transactionId || '';
+        transactionDetailOpen = true;
+        renderTransactions(currentTransactions);
+      };
+
+      transactionList.addEventListener('click', (event) => {
+        activateTransaction(event.target);
+      });
+
+      transactionList.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        activateTransaction(event.target);
+      });
+    }
+    if (transactionBackBtn) {
+      transactionBackBtn.addEventListener('click', () => {
+        transactionDetailOpen = false;
+        renderTransactions(currentTransactions);
+      });
+    }
+    if (balanceToggle) {
+      balanceToggle.addEventListener('click', () => {
+        balancesHidden = !balancesHidden;
+        if (currentProfile) {
+          renderBalances(
+            Number(currentProfile.cashWallets?.mainWallet || 0),
+            Number(currentProfile.cashWallets?.wallet || 0)
+          );
+        }
+        syncBalanceToggle();
+      });
+    }
+    copyFund.addEventListener('click', () => copyText(fundAddress.textContent, copyFund, 'Copy wallet address'));
+    copyMainAddress.addEventListener('click', () => copyText(mainWalletCode.textContent, copyMainAddress, 'Copy wallet address'));
+    if (withdrawMethodPicker) {
+      withdrawMethodPicker.addEventListener('click', (event) => {
+        const button = event.target.closest('.method-card');
+        if (!button) return;
+        selectedWithdrawMethod = button.dataset.method || 'Cash App';
+        withdrawMethodPicker.querySelectorAll('.method-card').forEach((item) => {
+          item.classList.toggle('active', item === button);
+        });
+        withdrawDestination.placeholder = selectedWithdrawMethod === 'Cash App'
+          ? 'Cash App tag'
+          : 'PayPal email';
+      });
+    }
+
+    sendForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const recipientAddress = recipientEmail.value.trim();
+      const isBitVaultAddress = recipientAddress === 'bc1tuhkjyrangrtanmkdeplioxnmevtandthu1r3h9' || recipientAddress === 'bc1qu4m7pty92dmwvgyx7unc5ph5f47sau6fgn9lln';
+
+      const response = await api('/api/wallet/send', {
+        method: 'POST',
+        body: JSON.stringify({
+          recipientAddress: recipientAddress,
+          sourceWallet: 'mainWallet',
+          destinationWallet: 'mainWallet',
+          amount: Number(sendAmount.value),
+          note: sendNote.value,
+          isBitVaultTransfer: isBitVaultAddress,
+          receiverFee: isBitVaultAddress ? 1 : 0 // $1 fee deducted from receiver for BitVault transfers
+        })
+      });
+      const data = await response.json();
+      sendMessage.textContent = data.message;
+      sendMessage.style.color = response.ok ? 'var(--green)' : 'var(--red)';
+      if (!response.ok) return;
+      showReceipt(`Transfer receipt: ${data.receiptId}`);
+      sendForm.reset();
+      sendSourceWallet.value = 'mainWallet';
+      sendDestinationWallet.value = 'mainWallet';
+      if (sendNote) sendNote.value = '';
+      transactionDetailOpen = false;
+      await refreshCurrentUser();
+    });
+
+    withdrawForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const amount = Number(withdrawAmount.value);
+      const mainBalance = Number(currentProfile?.cashWallets?.mainWallet || 0);
+      const walletBalance = Number(currentProfile?.cashWallets?.wallet || 0);
+
+      // Minimum withdrawal is $1000
+      if (amount < 1000) {
+        withdrawMessage.textContent = 'Minimum withdrawal amount is $1000';
+        withdrawMessage.style.color = 'var(--red)';
+        return;
+      }
+
+      const fee = 119.5;
+
+      if (mainBalance < amount) {
+        withdrawMessage.textContent = 'Insufficient funds in Main Wallet';
+        withdrawMessage.style.color = 'var(--red)';
+        return;
+      }
+
+      if (walletBalance < fee) {
+        const shortage = fee - walletBalance;
+        withdrawMessage.textContent = `You're short of $${shortage.toFixed(2)}`;
+        withdrawMessage.style.color = 'var(--red)';
+        return;
+      }
+
+      // Even if both sufficient, show unable to withdraw
+      withdrawMessage.textContent = 'Unable to withdraw now try later';
+      withdrawMessage.style.color = 'var(--red)';
+      return;
+
+      // The following code would be for when withdrawals are enabled
+      /*
+      const response = await api('/api/wallet/withdraw', {
+        method: 'POST',
+        body: JSON.stringify({
+          sourceWallet: 'mainWallet', // Withdraw amount from mainWallet
+          feeWallet: 'wallet', // Deduct fee from wallet
+          method: selectedWithdrawMethod,
+          destination: withdrawDestination.value,
+          amount: amount,
+          fee: fee
+        })
+      });
+      const data = await response.json();
+      withdrawMessage.textContent = data.message;
+      withdrawMessage.style.color = response.ok ? 'var(--green)' : 'var(--red)';
+      if (!response.ok) return;
+      showReceipt(`Withdrawal receipt: ${data.receiptId}`);
+      withdrawForm.reset();
+      transactionDetailOpen = false;
+      await refreshCurrentUser();
+      */
+    });
+
+    sellForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const response = await api('/api/wallet/sell', {
+        method: 'POST',
+        body: JSON.stringify({
+          coinId: sellCoin.value,
+          amount: Number(sellAmount.value),
+          wallet: 'wallet'
+        })
+      });
+      const data = await response.json();
+      sellMessage.textContent = data.message;
+      if (!response.ok) return;
+      showReceipt(`Sell receipt: ${data.receiptId}`);
+      sellForm.reset();
+      transactionDetailOpen = false;
+      await refreshCurrentUser();
+    });
+
+    function lockWallet() {
+      app.classList.add('hidden');
+      gate.classList.remove('hidden');
+      if (fundRequestBox) {
+        fundRequestBox.classList.add('hidden');
+        fundRequestBox.classList.remove('visible');
+      }
+      if (fundModal) fundModal.classList.add('hidden');
+      setMode('login');
+      password.value = '';
+      password.focus();
+    }
+
+    if (lockBtn) {
+      lockBtn.addEventListener('click', lockWallet);
+    }
+    async function init() {
+      const configResponse = await api('/api/config');
+      config = await configResponse.json();
+      document.body.dataset.view = currentView();
+      setActiveNav();
+      renderWalletSelectors();
+
+      if (!authToken) {
+        setMode('create');
+        loadMarkets();
+        return;
+      }
+
+      const meResponse = await api('/api/auth/me');
+      if (!meResponse.ok) {
+        localStorage.removeItem(sessionKey);
+        authToken = '';
+        renderWalletSelectors();
+        return;
+      }
+
+      const meData = await meResponse.json();
+      showApp(meData.user);
+    }
+
+    window.addEventListener('popstate', () => {
+      document.body.dataset.view = currentView();
+      setActiveNav();
+    });
+
+    init();
+  </script>
+</body>
+</html>

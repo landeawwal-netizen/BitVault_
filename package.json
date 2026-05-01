@@ -1,0 +1,18 @@
+{
+  "name": "bitvault-wallet",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "migrate:mongodb": "node scripts/migrate-store-to-mongodb.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "mongodb": "^6.16.0",
+    "mongoose": "^9.6.1",
+    "pg": "^8.15.6"
+  }
+}
