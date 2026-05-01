@@ -160,8 +160,35 @@ const sessionSchema = new mongoose.Schema({
   }
 }, { versionKey: false });
 
+const transactionSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true },
+  receiptId: { type: String, required: true, unique: true },
+  type: { type: String, required: true },
+  status: { type: String, default: "confirmed" },
+  assetSymbol: { type: String, default: "USD" },
+  assetName: { type: String, default: "US Dollar" },
+  amount: { type: Number, default: 0 },
+  fiatValue: { type: Number, default: 0 },
+  fee: { type: Number, default: 0 },
+  network: { type: String, default: "" },
+  confirmations: { type: Number, default: 0 },
+  sourceWallet: { type: String, default: null },
+  destinationWallet: { type: String, default: null },
+  fromUserId: { type: String, default: null },
+  fromLabel: { type: String, default: "" },
+  senderAddress: { type: String, default: "" },
+  toUserId: { type: String, default: null },
+  toLabel: { type: String, default: "" },
+  receiverAddress: { type: String, default: "" },
+  txHash: { type: String, default: "" },
+  timestamp: { type: Date, default: Date.now },
+  note: { type: String, default: "" },
+  createdAt: { type: Date, default: Date.now }
+}, { versionKey: false });
+
 const User = mongoose.model("User", userSchema);
 const Session = mongoose.model("Session", sessionSchema);
+const Transaction = mongoose.model("Transaction", transactionSchema);
 
 app.use(cors());
 app.use(express.json());
@@ -964,7 +991,25 @@ app.get("/api/auth/me", authRequired, (req, res) => {
   res.json({ user: publicUser(req.user) });
 });
 
-app.get("/api/wallet/transactions", authRequired, (req, res) => {
+app.get("/api/wallet/transactions", authRequired, async (req, res) => {
+  if (USE_MONGODB) {
+    try {
+      const userId = req.user._id?.toString() || req.user.id;
+      const transactions = await Transaction.find({
+        type: { $ne: "account_created" },
+        $or: [
+          { toUserId: userId },
+          { fromUserId: userId }
+        ]
+      }).sort({ timestamp: -1, createdAt: -1 });
+
+      return res.json({ transactions });
+    } catch (error) {
+      console.error("Unable to load MongoDB transactions:", error);
+      return res.status(500).json({ message: "Unable to load transactions." });
+    }
+  }
+
   const db = readDb();
   const transactions = db.transactions
     .filter((item) => (item.toUserId === req.user.id || item.fromUserId === req.user.id) && item.type !== "account_created")
@@ -1323,7 +1368,17 @@ app.post("/api/admin/users/:id/fund", async (req, res) => {
   });
 });
 
-app.get("/api/admin/transactions", (req, res) => {
+app.get("/api/admin/transactions", async (req, res) => {
+  if (USE_MONGODB) {
+    try {
+      const transactions = await Transaction.find({ type: { $ne: "account_created" } }).sort({ timestamp: -1, createdAt: -1 });
+      return res.json({ transactions });
+    } catch (error) {
+      console.error("Unable to load MongoDB admin transactions:", error);
+      return res.status(500).json({ message: "Unable to load transactions." });
+    }
+  }
+
   const db = readDb();
   const transactions = db.transactions
     .slice()
